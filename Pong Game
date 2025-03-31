@@ -1,0 +1,146 @@
+import turtle as t
+import os
+
+# Score variables
+player_a_score = 0
+player_b_score = 0
+
+win = t.Screen()    # creating a window
+win.title("Ping-Pong Game") # Giving name to the game
+win.bgcolor('black')    # providing color to the HomeScreen
+win.setup(width=800,height=600) # Size of the game panel
+win.tracer(0)   # speeds up the game by controlling screen updates
+
+# Creating left paddle for the game
+paddle_left = t.Turtle()
+paddle_left.speed(0)
+paddle_left.shape('square')
+paddle_left.color('red')
+paddle_left.shapesize(stretch_wid=5,stretch_len=1)
+paddle_left.penup()
+paddle_left.goto(-350,0)
+
+# Creating a right paddle for the game
+paddle_right = t.Turtle()
+paddle_right.speed(0)
+paddle_right.shape('square')
+paddle_right.shapesize(stretch_wid=5,stretch_len=1)
+paddle_right.color('red')
+paddle_right.penup()
+paddle_right.goto(350,0)
+
+# Creating a pong ball for the game
+ball = t.Turtle()
+ball.speed(0)
+ball.shape('circle')
+ball.color('yellow')
+ball.penup()
+ball.goto(0,0)
+ball_dx = 0.1  # ball movement speed
+ball_dy = 0.1
+
+# Creating a pen for updating the Score
+pen = t.Turtle()
+pen.speed(0)
+pen.color('skyblue')
+pen.penup()
+pen.hideturtle()
+pen.goto(0,260)
+pen.write(f"Player A: {player_a_score}                    Player B: {player_b_score}", align="center", font=('Monaco', 24, "normal"))
+
+# Paddle movement functions
+def paddle_left_up():
+    if paddle_left.ycor() < 250:
+        paddle_left.sety(paddle_left.ycor() + 50)
+
+def paddle_left_down():
+    if paddle_left.ycor() > -240:
+        paddle_left.sety(paddle_left.ycor() - 50)
+
+def paddle_right_up():
+    if paddle_right.ycor() < 250:
+        paddle_right.sety(paddle_right.ycor() + 50)
+
+def paddle_right_down():
+    if paddle_right.ycor() > -240:
+        paddle_right.sety(paddle_right.ycor() - 50)
+
+# Keyboard binding
+win.listen()
+win.onkeypress(paddle_left_up, "w")
+win.onkeypress(paddle_left_down, "s")
+win.onkeypress(paddle_right_up, "Up")
+win.onkeypress(paddle_right_down, "Down")
+
+# Function to update ball movement and handle collisions
+def move_ball():
+    global ball_dx, ball_dy, player_a_score, player_b_score
+
+    # Ball movement
+    ball.setx(ball.xcor() + ball_dx)
+    ball.sety(ball.ycor() + ball_dy)
+
+    # Border collision
+    if ball.ycor() > 290:
+        ball.sety(290)
+        ball_dy *= -1
+
+    if ball.ycor() < -290:
+        ball.sety(-290)
+        ball_dy *= -1
+
+    if ball.xcor() > 390:   # Player A scores
+        ball.goto(0, 0)
+        ball_dx *= -1
+        player_a_score += 1
+        update_score()
+
+    if ball.xcor() < -390:   # Player B scores
+        ball.goto(0, 0)
+        ball_dx *= -1
+        player_b_score += 1
+        update_score()
+
+    # Paddle collision
+    if 340 < ball.xcor() < 350 and paddle_right.ycor() - 40 < ball.ycor() < paddle_right.ycor() + 40:
+        ball.setx(340)
+        ball_dx *= -1
+
+    if -350 < ball.xcor() < -340 and paddle_left.ycor() - 40 < ball.ycor() < paddle_left.ycor() + 40:
+        ball.setx(-340)
+        ball_dx *= -1
+
+# Function to update the score
+def update_score():
+    pen.clear()
+    pen.write(f"Player A: {player_a_score}                    Player B: {player_b_score}", align="center", font=('Monaco', 24, "normal"))
+    
+    # Check if anyone has won
+    if player_a_score == 7:
+        pen.clear()
+        pen.write("Player A Wins!", align="center", font=('Monaco', 24, "normal"))
+        win.update()  # Update the screen to show the win message
+        t.sleep(2)  # Wait for 2 seconds before restarting the game
+        reset_game()
+
+    elif player_b_score == 7:
+        pen.clear()
+        pen.write("Player B Wins!", align="center", font=('Monaco', 24, "normal"))
+        win.update()  # Update the screen to show the win message
+        t.sleep(2)  # Wait for 2 seconds before restarting the game
+        reset_game()
+
+# Function to reset the game
+def reset_game():
+    global player_a_score, player_b_score
+    player_a_score = 0
+    player_b_score = 0
+    pen.clear()
+    pen.write(f"Player A: {player_a_score}                    Player B: {player_b_score}", align="center", font=('Monaco', 24, "normal"))
+    ball.goto(0, 0)
+    ball_dx *= -1  # Ball direction reset
+
+# Main Game Loop
+while True:
+    win.update()  # speeds up the game by not updating the screen every time
+    move_ball()
